@@ -12,6 +12,7 @@
         <el-option label="OpenAI" value="openai" />
         <el-option label="Google" value="google" />
         <el-option label="Anthropic" value="anthropic" />
+        <el-option label="Ollama" value="ollama" />
       </el-select>
     </el-form-item>
     <el-form-item label="显示名称" prop="display_name">
@@ -20,9 +21,9 @@
     <el-form-item label="API Base" prop="api_base">
       <el-input
         v-model="form.api_base"
-        :disabled="form.provider !== 'openai_compatible'"
-        :input-props="{ autocomplete: 'off', name: 'api_base_no_fill' }"
-        placeholder="例如: https://api.siliconflow.cn/v1（仅 OpenAI兼容 使用）"
+        :disabled="form.provider !== 'openai_compatible' && form.provider !== 'ollama'"
+         :input-props="{ autocomplete: 'off', name: 'api_base_no_fill' }"
+        placeholder="例如: https://api.siliconflow.cn/v1（OpenAI兼容和Ollama 使用）"
       />
     </el-form-item>
     <el-form-item label="API Key" prop="api_key">
@@ -122,11 +123,11 @@ const rules = reactive<FormRules>({
   call_limit: [{ required: true, message: '请输入调用次数上限', trigger: 'blur' }]
 })
 
-// 监听 provider 变化，非兼容模式清空 api_base
+// 监听 provider 变化，非Ollama和兼容模式清空 api_base
 watch(
   () => form.provider,
   (newVal) => {
-    if (newVal !== 'openai_compatible') {
+    if (newVal !== 'openai_compatible' && newVal !== 'ollama') {
       form.api_base = ''
     }
   }

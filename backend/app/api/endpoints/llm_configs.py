@@ -81,6 +81,15 @@ async def get_models_endpoint(request: LLMGetModelsRequest, session: Session = D
                      if "models" in data and isinstance(data["models"], list):
                          models = [m["name"].replace("models/", "") for m in data["models"] if "name" in m]
 
+        elif provider == "ollama":
+            api_base = request.api_base or "http://localhost:11434"
+            api_base = api_base.rstrip("/")
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"{api_base}/api/tags", timeout=10.0)
+                response.raise_for_status()
+                data = response.json()
+                models = [model["name"] for model in data.get("models",[]) if "name" in model]
+
         return ApiResponse(data=models)
         
     except Exception as e:
@@ -134,6 +143,15 @@ async def test_llm_connection_endpoint(connection_data: LLMConnectionTest, sessi
             }
             model = ChatGoogleGenerativeAI(**kwargs)
 
+        elif provider =="ollama":
+            from langchain_ollama import ChatOllama
+
+            kwargs ={
+                "model": connection_data.model_name,
+                "base_url": connection_data.api_base,
+            }
+            model = ChatOllama(**kwargs)
+            
         else:
             raise HTTPException(status_code=400, detail=f"不支持的提供商类型: {connection_data.provider}")
 

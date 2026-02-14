@@ -26,6 +26,8 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_qwq import ChatQwen
+# 新增ollama
+from langchain_ollama import ChatOllama
 
 from app.db.models import LLMConfig
 from app.schemas.ai import AssistantChatRequest
@@ -462,6 +464,22 @@ def build_chat_model(
         if temperature is not None:
             model_kwargs["temperature"] = float(temperature)
         return ChatGoogleGenerativeAI(**model_kwargs)
+
+    # 新增 Ollama
+    if provider =="ollama":
+        # 使用 Ollama 类
+        model_kwargs = {
+            "model": cfg.model_name,
+            "base_url": cfg.api_base,
+        }
+        if temperature is not None:
+            model_kwargs["temperature"] = float(temperature)
+        if timeout is not None:
+            model_kwargs["timeout"] = float(timeout) 
+        if max_tokens is not None:
+            model_kwargs["num_predict"] = int(max_tokens)  # ChatOllama 使用 num_predict
+
+        return ChatOllama(**model_kwargs)
 
     raise ValueError(f"不支持的 LLM 提供商: {cfg.provider}")
 
